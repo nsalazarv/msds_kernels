@@ -23,7 +23,13 @@ train <- data[which(data$grupo == 1 | data$grupo == 2 | data$grupo == 3 | data$g
 test <- data[which(data$grupo == 5),]
 
 # Estimando los coeficientes de regresión con Mínimos Cuadrados
+y=train[["protein"]]
+w_manual=solve(t(X)%*%X)%*%t(X)%*%y
+w_manual
 
+#Revisamos si w y w_manual tienen los mismos valores
+w
+w_manual
 
 
 # Estimando los coeficientes de regresión con la función lm()
