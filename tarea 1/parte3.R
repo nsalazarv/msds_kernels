@@ -23,13 +23,12 @@ train <- data[which(data$grupo == 1 | data$grupo == 2 | data$grupo == 3 | data$g
 test <- data[which(data$grupo == 5),]
 
 # Estimando los coeficientes de regresión con Mínimos Cuadrados
-y=train[["protein"]]
-w_manual=solve(t(X)%*%X)%*%t(X)%*%y
-w_manual
 
-#Revisamos si w y w_manual tienen los mismos valores
+y = train$protein
+X = train$calories
+
+w = solve(t(X)%*%X)%*%t(X)%*%y
 w
-w_manual
 
 
 # Estimando los coeficientes de regresión con la función lm()
@@ -52,4 +51,9 @@ processTest[,'calories'] = predict(pre_proc_val, processTest[,'calories'])
 
 # Repitiendo OLS con la columna calories estandarizada
 
+y2 = train$protein
+X2 = processTrain$calories
+
+w3 = solve(t(X2)%*%X2)%*%t(X2)%*%y2
+w3
 
