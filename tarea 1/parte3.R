@@ -30,7 +30,6 @@ X = train$calories
 w = solve(t(X)%*%X)%*%t(X)%*%y
 w
 
-
 # Estimando los coeficientes de regresión con la función lm()
 
 modelo2 = lm(protein~calories,data=train)
