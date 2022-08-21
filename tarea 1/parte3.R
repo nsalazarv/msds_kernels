@@ -24,35 +24,36 @@ test <- data[which(data$grupo == 5),]
 
 # Estimando los coeficientes de regresión con Mínimos Cuadrados
 
-y = train$protein
-X = train$calories
+y <- train$protein
+X <- cbind(rep(1,dim(train)[1]),train[["calories"]])
 
-w = solve(t(X)%*%X)%*%t(X)%*%y
+w <- solve(t(X)%*%X)%*%t(X)%*%y
 w
 
 # Estimando los coeficientes de regresión con la función lm()
 
-modelo2 = lm(protein~calories,data=train)
+modelo2 <- lm(protein~calories,data=train)
 summary(modelo2)
 
-w2 = modelo2[["coefficients"]]
+w2 <- modelo2[["coefficients"]]
 w2
 
 # Estandarizando la columna calories
 
-processTrain = train
-processTest = test
+processTrain <- train
+processTest <- test
 
 pre_proc_val <- preProcess(processTrain[,'calories'], method = c("center", "scale"))
 
-processTrain[,'calories'] = predict(pre_proc_val, processTrain[,'calories'])
-processTest[,'calories'] = predict(pre_proc_val, processTest[,'calories'])
+processTrain[,'calories'] <- predict(pre_proc_val, processTrain[,'calories'])
+processTest[,'calories'] <- predict(pre_proc_val, processTest[,'calories'])
 
 # Repitiendo OLS con la columna calories estandarizada
 
-y2 = train$protein
-X2 = processTrain$calories
+y2 <- train$protein
+X2 <- cbind(rep(1,dim(processTrain)[1]),processTrain[["calories"]])
 
-w3 = solve(t(X2)%*%X2)%*%t(X2)%*%y2
+w3 <- solve(t(X2)%*%X2)%*%t(X2)%*%y2
 w3
 
+# Graficando 
