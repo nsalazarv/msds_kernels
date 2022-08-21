@@ -28,6 +28,7 @@ y <- train$protein
 X <- cbind(rep(1,dim(train)[1]),train[["calories"]])
 
 w <- solve(t(X)%*%X)%*%t(X)%*%y
+w <- c(w)
 w
 
 # Estimando los coeficientes de regresión con la función lm()
@@ -54,6 +55,30 @@ y2 <- train$protein
 X2 <- cbind(rep(1,dim(processTrain)[1]),processTrain[["calories"]])
 
 w3 <- solve(t(X2)%*%X2)%*%t(X2)%*%y2
+w3 <- c(w3)
 w3
 
-# Graficando 
+# Graficando OLS sin y con estandarización (arreglar, aún no funciona bien)
+
+plot(train$calories, train$protein, main = 'OLS sin estandarización', xlab = 'Calories', ylab = 'Proteins')
+abline(w[1], w[2])
+
+plot(processTrain$calories, train$protein, main = 'OLS con estandarización', xlab = 'Calories', ylab = 'Proteins')
+abline(w3[1], w3[2])
+
+# Predicción sin estandarización
+
+X_pred <- cbind(rep(1,dim(test)[1]),test[["calories"]])
+
+y_pred <- X_pred%*%w
+y_pred
+
+# Predicción con estandarización
+
+X_pred2 <- cbind(rep(1,dim(processTest)[1]),processTest[["calories"]])
+
+y_pred2 <- X_pred2%*%w3
+y_pred2
+
+
+
