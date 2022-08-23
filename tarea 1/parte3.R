@@ -1,5 +1,6 @@
 ### Script pregunta 3
 
+rm(list=ls())
 pacman::p_load(tidyverse, openintro, ggplot2, caret)
 set.seed(23)
 
@@ -28,7 +29,6 @@ y <- train$protein
 X <- cbind(rep(1,dim(train)[1]),train[["calories"]])
 
 w <- solve(t(X)%*%X)%*%t(X)%*%y
-w <- c(w)
 w
 
 # Estimando los coeficientes de regresión con la función lm()
@@ -55,30 +55,51 @@ y2 <- train$protein
 X2 <- cbind(rep(1,dim(processTrain)[1]),processTrain[["calories"]])
 
 w3 <- solve(t(X2)%*%X2)%*%t(X2)%*%y2
-w3 <- c(w3)
 w3
 
-# Graficando OLS sin y con estandarización (arreglar, aún no funciona bien)
+# Graficando OLS sin y con estandarización
 
 plot(train$calories, train$protein, main = 'OLS sin estandarización', xlab = 'Calories', ylab = 'Proteins')
-abline(w[1], w[2])
+abline(w)
 
 plot(processTrain$calories, train$protein, main = 'OLS con estandarización', xlab = 'Calories', ylab = 'Proteins')
-abline(w3[1], w3[2])
+abline(w3)
 
 # Predicción sin estandarización
 
-X_pred <- cbind(rep(1,dim(test)[1]),test[["calories"]])
+X_pred <- cbind(rep(1,dim(test)[1]),test$calories)
 
 y_pred <- X_pred%*%w
 y_pred
 
+plot(test$calories, test$protein, main = 'Predicción OLS sin estandarización', xlab = 'Calories', ylab = 'Proteins')
+points(test$calories, y_pred, col = '2')
+abline(w)
+
 # Predicción con estandarización
 
-X_pred2 <- cbind(rep(1,dim(processTest)[1]),processTest[["calories"]])
+X_pred2 <- cbind(rep(1,dim(processTest)[1]), processTest$calories)
 
 y_pred2 <- X_pred2%*%w3
 y_pred2
+
+plot(processTest$calories, test$protein, main = 'Predicción OLS con estandarización', xlab = 'Calories', ylab = 'Proteins')
+points(processTest$calories, y_pred2, col = '2')
+abline(w3)
+
+# ECMP OLS sin estandarización 
+
+N = dim(test)[1]
+
+ecmp <- 1/N*sum((test$protein - y_pred)^2)
+ecmp
+
+# ECMP OLS con estandarización 
+
+ecmp2 <- 1/N*sum((test$protein - y_pred2)^2)
+ecmp
+
+
 
 
 
