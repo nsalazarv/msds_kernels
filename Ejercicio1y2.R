@@ -26,7 +26,9 @@ for (i in 1:700){
     valor<-Kernelp(x[i,],y[i,],1,0.5,1)
     graf<-rbind(graf,valor)
 }
-plot(graf[,1],graf[,2],type="l",col="red")
+plot(graf[,1],graf[,2],type="l",col="red",
+     xlab="Valor Norma",ylab="Valor Kernel",
+     main="Locally Kernel σ = 1, p = 0.5, l=1")
 
 graf2<-c()
 for (i in 1:700){
@@ -34,16 +36,20 @@ for (i in 1:700){
   graf2<-rbind(graf2,valor2)
 }
 
-plot(graf2[,1],graf2[,2],type="l",col="blue")
+plot(graf2[,1],graf2[,2],type="l",col="blue",
+     xlab="Valor Norma",ylab="Valor Kernel",
+     main="Locally Kernel σ = 1, p = 0.5, l=10")
 
 #importar paquete reshape
 #Generamos el grafico de ambos kernel para comparar.
 df<-data.frame(cbind(graf,graf2[,2]))
-colnames(df)<-c("X","Y1","Y2")
+colnames(df)<-c("X","l=1","l=10")
 df <- melt(df, id.vars = "X")
-ggplot(df, aes(x = X, y = value,group=variable, color = variable))+
-  geom_line(size=0.5)
 
+ggplot<-ggplot(df, aes(x = X, y = value,group=variable, color = variable))+
+  geom_line(size=0.5)+ggtitle("Locally Kernel σ = 1, p = 0.5// l=1 vs l=10")
+ggplot<-ggplot+xlab("Valor Norma")+ylab("Valor Kernel")+theme(legend.title=element_blank())
+ggplot
 
 ##Grafico de la función##
 #Buscamos ver el compartamiento para un set ordenado de datos respecto a su norma.
@@ -57,15 +63,20 @@ Kernelp_graf<-function(l,p,desv){
 
 graf3<-Kernelp_graf(1,0.5,1)
 graf4<-Kernelp_graf(10,0.5,1)
+graf5<-Kernelp_graf(1.5,0.5,1)
+graf6<-Kernelp_graf(4,0.5,1)
 plot(graf3[,1],graf3[,2],type="l",col="red")
 plot(graf4[,1],graf4[,2],type="l",col="blue")
 
 #Generamos el grafico de ambos kernel para comparar.
-df2<-data.frame(cbind(graf3,graf4[,2]))
-colnames(df2)<-c("X","Y1","Y2")
+df2<-data.frame(cbind(graf3,graf5[,2],graf6[,2],graf4[,2]))
+colnames(df2)<-c("X","l=1","l=1.5","l=4","l=10")
 df2 <- melt(df2, id.vars = "X")
-ggplot(df2, aes(x = X, y = value,group=variable, color = variable))+
-  geom_line(size=0.5)
+ggplot2<-ggplot(df2, aes(x = X, y = value,group=variable, color = variable))+
+  geom_line(size=0.5) +ggtitle("Locally Kernel σ = 1, p = 0.5, para distintos l")
+ggplot2<-ggplot2+theme(legend.title=element_blank())+
+  xlab("Valor Norma")+ylab("Valor Kernel")
+ggplot2
 
 
 ## Ejercicio 2##
