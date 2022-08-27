@@ -27,7 +27,6 @@ w
 
 # Estimando los coeficientes de regresión con la función lm()
 modelo2 <- lm(protein~calories,data=train)
-summary(modelo2)
 w2 <- modelo2[["coefficients"]]
 w2
 
@@ -90,8 +89,10 @@ e<- c(5,1,2,3,4)
 iterador <- data.frame(a, b, c, d, e)
 
 error_cuadratico_medio <- data.frame(matrix(ncol = 2, nrow = 0))
-x <- c("Error normal", "Estandarizado")
+x <- c("Normal", "Estandarizado")
 colnames(error_cuadratico_medio) <- x
+
+par(mfrow=c(2,3))
 
 for(i in 1:5){
   train <- data[which(data$grupo == iterador$a[i] | data$grupo == iterador$b[i] | data$grupo == iterador$c[i] | data$grupo == iterador$d[i]),]
@@ -117,8 +118,10 @@ for(i in 1:5){
   ecmp <- 1/N*sum((test$protein - y_pred)^2)
   ecmp2 <- 1/N*sum((test$protein - y_pred2)^2)
   error_cuadratico_medio[nrow(error_cuadratico_medio) + 1,] = c(ecmp, ecmp2)
+  boxplot(error_cuadratico_medio)
+  title(e[i])
 }
-boxplot(error_cuadratico_medio)
+
 
 
 ## Parte 2
