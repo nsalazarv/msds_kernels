@@ -11,7 +11,9 @@ Kernelp<-function(a,b,l,p,desv){
   lista<-c()
   lista2<-c()
   norma<-sqrt(sum((a-b)^2))
-  resultado<-(desv^2)*exp(-((2*(sin(pi*norma*(1/p)))^2)/(l^2)))*exp(-((norma)^2)/(2*(l^2)))
+  resultado<-(desv^2)* 
+    exp(-((2*(sin(pi*norma*(1/p)))^2)/(l^2)))*
+    exp(-((norma)^2)/(2*(l^2)))
   lista<-rbind(lista,norma)
   lista2<-rbind(lista2,resultado)
   matriz<-cbind(lista,lista2)

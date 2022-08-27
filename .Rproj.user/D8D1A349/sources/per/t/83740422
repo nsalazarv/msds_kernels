@@ -3,7 +3,7 @@
     "path": "C:/Users/nicov/Desktop/Universidad/Trabajos Universidad Uai/Semestre X/MÉTODOS BASADOS EN KERNELS PARA APRENDIZAJE AUTOMÁTICO/msds_kernels/Ejercicio1y2.R",
     "project_path": "Ejercicio1y2.R",
     "type": "r_source",
-    "hash": "0",
+    "hash": "385221191",
     "contents": "",
     "dirty": false,
     "created": 1660872578817.0,
@@ -13,15 +13,15 @@
         "tempName": "Untitled1",
         "source_window_id": "",
         "Source": "Source",
-        "cursorPosition": "59,32",
-        "scrollLine": "45"
+        "cursorPosition": "85,0",
+        "scrollLine": "76"
     },
     "folds": "",
-    "lastKnownWriteTime": 1661280959,
+    "lastKnownWriteTime": 1661311660,
     "encoding": "UTF-8",
     "collab_server": "",
     "source_window": "",
-    "last_content_update": 1661280959494,
+    "last_content_update": 1661311660273,
     "read_only": false,
     "read_only_alternatives": []
 }

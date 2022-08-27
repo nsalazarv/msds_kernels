@@ -11,7 +11,9 @@ Kernelp<-function(a,b,l,p,desv){
   lista<-c()
   lista2<-c()
   norma<-sqrt(sum((a-b)^2))
-  resultado<-(desv^2)*exp(-((2*(sin(pi*norma*(1/p)))^2)/(l^2)))*exp(-((norma)^2)/(2*(l^2)))
+  resultado<-(desv^2)* 
+    exp(-((2*(sin(pi*norma*(1/p)))^2)/(l^2)))*
+    exp(-((norma)^2)/(2*(l^2)))
   lista<-rbind(lista,norma)
   lista2<-rbind(lista2,resultado)
   matriz<-cbind(lista,lista2)
@@ -107,10 +109,7 @@ funcion=function(a,b)
 a=cbind(c(1,2,3),c(0,1,0))
 b=cbind(c(1,4),c(2,5),c(3,6),c(0,7))
 algo<-system.time(funcion(a,b))[1]
-#algo<-unname(algo)
-#algo
-#algo<-cbind(algo)
-#a%*%b
+
 
 #ITEM 2#
 
