@@ -125,6 +125,47 @@ for(i in 1:5){
 
 
 ## Parte 2
+rm(list=ls())
+data2 <- select(starbucks, protein, fat, carb, fiber, calories)
+set.seed(100)
+index = sample(1:nrow(data2),0.7*nrow(data2),replace=FALSE)
+index=sort(index)
+train = data2[index,] # Creamos datos de entrenamiento 
+test = data2[-index,] # Creamos datos de evaluación
+dim(train)
+dim(test)
+ptrain=train
+ptest=test
+cols = c( 'fat', 'carb', 'fiber','calories')
+pre_proc_val <- preProcess(ptrain[,cols], method = c('center','scale'))
+ptrain[,cols] = predict(pre_proc_val, ptrain[,cols])
+ptest[,cols] = predict(pre_proc_val, ptest[,cols])
 
 
+modelo_parte2=lm(protein~fat+carb+fiber+calories,data=data2)
+summary(modelo_parte2) 
+#Si entrenamos el modelo con la totalidad de la data obtenemos los resultados referenciados mediante conocimiento experto
 
+
+modelo_parte2=lm(protein~fat+carb+fiber+calories,data=ptrain)
+summary(modelo_parte2) 
+
+w=modelo_parte2[["coefficients"]]
+X=cbind(rep(1,dim(ptrain)[1]),ptrain[["protein"]],ptrain[["fat"]],ptrain[["carb"]],ptrain[["fiber"]],ptrain[["calories"]])
+y=ptrain[["protein"]]
+w_manual=solve(t(X)%*%X)%*%t(X)%*%y
+
+hat_y=modelo_parte2[["fitted.values"]]
+hat_y_manual=X%*%w_manual
+n=length(y)
+plot(1:n,y,type="l")
+points(1:n,hat_y,col="2")
+points(1:n,hat_y_manual,col="3")
+
+y_pred=predict.lm(modelo_parte2,newdata=ptest)
+
+aux=summary(modelo_parte2)
+aux[["adj.r.squared"]]
+aux[["r.squared"]]
+N=dim(ptest)[1]
+1/N*sum((ptest[["protein"]]-predict.lm(modelo_parte2,newdata=ptest))^2)
