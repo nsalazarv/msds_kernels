@@ -149,6 +149,10 @@ summary(modelo_parte2)
 modelo_parte2=lm(protein~fat+carb+fiber+calories,data=data2)
 summary(modelo_parte2)
 
+#Recreamos el modelo con data de entrenamieto
+modelo_parte2=lm(protein~fat+carb+fiber+calories,data=ptrain)
+summary(modelo_parte2) 
+
 #Podemos utilziar la data considerada por el conocimiento experto
 require(tidyverse)
 require(knitr)
@@ -161,9 +165,6 @@ modelo_parte2 <- nls(formula =  protein ~ a + b1*fat +  b2*carb + b3*fiber+b4*ca
 
 summary(modelo_parte2) #Restringimos w2 a ser -0.8
 
-#Recreamos el modelo con data de entrenamieto
-modelo_parte2=lm(protein~fat+carb+fiber+calories,data=ptrain)
-summary(modelo_parte2) 
 
 w=modelo_parte2[["coefficients"]]
 X=cbind(rep(1,dim(ptrain)[1]),ptrain[["protein"]],ptrain[["fat"]],ptrain[["carb"]],ptrain[["fiber"]],ptrain[["calories"]])
@@ -177,14 +178,14 @@ plot(1:n,y,type="l")
 points(1:n,hat_y,col="2")
 points(1:n,hat_y_manual,col="3")
 
-y_pred=predict.lm(modelo_parte2,newdata=ptest)
-
+#y_pred=predict.lm(modelo_parte2,newdata=ptest)
+y_pred=predict(modelo_parte2,newdata=ptest)
 aux=summary(modelo_parte2)
 aux[["adj.r.squared"]]
 aux[["r.squared"]]
 N=dim(ptest)[1]
-1/N*sum((ptest[["protein"]]-predict.lm(modelo_parte2,newdata=ptest))^2)
-
+#1/N*sum((ptest[["protein"]]-predict.lm(modelo_parte2,newdata=ptest))^2)
+1/N*sum((ptest[["protein"]]-predict(modelo_parte2,newdata=ptest))^2)
 #Para el cross validation utilizamos el control de la forma
 library(caret)
 ctrl <- trainControl(method = "cv", number = 5)
