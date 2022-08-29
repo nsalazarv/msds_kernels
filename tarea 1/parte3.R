@@ -142,9 +142,22 @@ ptrain[,cols] = predict(pre_proc_val, ptrain[,cols])
 ptest[,cols] = predict(pre_proc_val, ptest[,cols])
 
 
-modelo_parte2=lm(protein~fat+carb+fiber+calories,data=data2)
+modelo_parte2=lm(protein~fat+carb+fiber+calories,data=data2)#Si entrenamos el modelo con la totalidad de la data obtenemos los resultados referenciados mediante conocimiento experto
 summary(modelo_parte2) 
-#Si entrenamos el modelo con la totalidad de la data obtenemos los resultados referenciados mediante conocimiento experto
+
+
+#Podemos utilziar la data considerada por el conocimiento experto
+require(tidyverse)
+require(knitr)
+modelo_parte2 <- nls(formula =  protein ~ a + b1*fat +  b2*carb + b3*fiber+b4*calories,
+                     data = ptrain, 
+                     start = list(a = 0,b1 = 0.0,b2 = 0, b3 = 0),
+                     lower = c(a = -Inf,b1 = -Inf,b2 = -0.89, b3 = -Inf, b4 = -Inf),
+                     upper = c(a = Inf,b1 = Inf,b2 = -0.8, b3 = Inf, b4 = Inf),
+                     algorithm = "port") 
+
+summary(modelo_parte2) 
+
 
 #Recreamos el modelo con data de entrenamieto
 modelo_parte2=lm(protein~fat+carb+fiber+calories,data=ptrain)
