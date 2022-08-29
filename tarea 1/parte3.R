@@ -147,7 +147,7 @@ summary(modelo_parte2)
 
 
 #Podemos utilziar la data considerada por el conocimiento experto
-require(tidyverse)
+'''require(tidyverse)
 require(knitr)
 modelo_parte2 <- nls(formula =  protein ~ a + b1*fat +  b2*carb + b3*fiber+b4*calories,
                      data = ptrain, 
@@ -156,8 +156,7 @@ modelo_parte2 <- nls(formula =  protein ~ a + b1*fat +  b2*carb + b3*fiber+b4*ca
                      upper = c(a = Inf,b1 = Inf,b2 = -0.8, b3 = Inf, b4 = Inf),
                      algorithm = "port") 
 
-summary(modelo_parte2) 
-
+summary(modelo_parte2)'''
 
 #Recreamos el modelo con data de entrenamieto
 modelo_parte2=lm(protein~fat+carb+fiber+calories,data=ptrain)
