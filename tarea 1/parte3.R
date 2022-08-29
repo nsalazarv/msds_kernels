@@ -146,7 +146,7 @@ modelo_parte2=lm(protein~fat+carb+fiber+calories,data=data2)
 summary(modelo_parte2) 
 #Si entrenamos el modelo con la totalidad de la data obtenemos los resultados referenciados mediante conocimiento experto
 
-
+#Recreamos el modelo con data de entrenamieto
 modelo_parte2=lm(protein~fat+carb+fiber+calories,data=ptrain)
 summary(modelo_parte2) 
 
@@ -169,3 +169,9 @@ aux[["adj.r.squared"]]
 aux[["r.squared"]]
 N=dim(ptest)[1]
 1/N*sum((ptest[["protein"]]-predict.lm(modelo_parte2,newdata=ptest))^2)
+
+#Para el cross validation utilizamos el control de la forma
+library(caret)
+ctrl <- trainControl(method = "cv", number = 5)
+modelcrossval <- train(protein~fat+carb+fiber+calories,data=ptrain, method = "lm", trControl = ctrl) #Entrenamos el modelo considerando el control
+print(modelcrossval)#Vemos el resumen del modelo con control k-fold CV
