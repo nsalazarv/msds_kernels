@@ -146,17 +146,20 @@ modelo_parte2=lm(protein~fat+carb+fiber+calories,data=data2)#Si entrenamos el mo
 summary(modelo_parte2) 
 
 
+modelo_parte2=lm(protein~fat+carb+fiber+calories,data=data2)
+summary(modelo_parte2)
+
 #Podemos utilziar la data considerada por el conocimiento experto
-'''require(tidyverse)
+require(tidyverse)
 require(knitr)
 modelo_parte2 <- nls(formula =  protein ~ a + b1*fat +  b2*carb + b3*fiber+b4*calories,
                      data = ptrain, 
-                     start = list(a = 0,b1 = 0.0,b2 = 0, b3 = 0),
-                     lower = c(a = -Inf,b1 = -Inf,b2 = -0.89, b3 = -Inf, b4 = -Inf),
+                     start = list(a = 0,b1 = 0.0,b2 = -0.8, b3 = 0, b4=0),
+                     lower = c(a = -Inf,b1 = -Inf,b2 = -0.8, b3 = -Inf, b4 = -Inf),
                      upper = c(a = Inf,b1 = Inf,b2 = -0.8, b3 = Inf, b4 = Inf),
                      algorithm = "port") 
 
-summary(modelo_parte2)'''
+summary(modelo_parte2) #Restringimos w2 a ser -0.8
 
 #Recreamos el modelo con data de entrenamieto
 modelo_parte2=lm(protein~fat+carb+fiber+calories,data=ptrain)
