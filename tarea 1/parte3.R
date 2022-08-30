@@ -149,26 +149,16 @@ summary(modelo_parte2)
 modelo_parte2=lm(protein~fat+carb+fiber+calories,data=data2)
 summary(modelo_parte2)
 
-#Recreamos el modelo con data de entrenamieto
-modelo_parte2=lm(protein~fat+carb+fiber+calories,data=ptrain)
-summary(modelo_parte2) 
-
 #Podemos utilziar la data considerada por el conocimiento experto
-require(tidyverse)
-require(knitr)
-modelo_parte2 <- nls(formula =  protein ~ a + b1*fat +  b2*carb + b3*fiber+b4*calories,
-                     data = ptrain, 
-                     start = list(a = 0,b1 = 0.0,b2 = -0.8, b3 = 0, b4=0),
-                     lower = c(a = -Inf,b1 = -Inf,b2 = -0.8, b3 = -Inf, b4 = -Inf),
-                     upper = c(a = Inf,b1 = Inf,b2 = -0.8, b3 = Inf, b4 = Inf),
-                     algorithm = "port") 
-
-summary(modelo_parte2) #Restringimos w2 a ser -0.8
+#Restringimos w2 a ser -0.8
+#Recreamos el modelo con data de entrenamieto
+modelo_parte2=lm(protein+0.8*carb~fat+fiber+calories,data=ptrain)
+summary(modelo_parte2) 
 
 
 w=modelo_parte2[["coefficients"]]
-X=cbind(rep(1,dim(ptrain)[1]),ptrain[["protein"]],ptrain[["fat"]],ptrain[["carb"]],ptrain[["fiber"]],ptrain[["calories"]])
-y=ptrain[["protein"]]
+X=cbind(rep(1,dim(ptrain)[1]),ptrain[["fat"]],ptrain[["fiber"]],ptrain[["calories"]])
+y=ptrain[["protein"]]+0.8*ptrain[["carb"]]
 w_manual=solve(t(X)%*%X)%*%t(X)%*%y
 
 hat_y=modelo_parte2[["fitted.values"]]
@@ -178,16 +168,15 @@ plot(1:n,y,type="l")
 points(1:n,hat_y,col="2")
 points(1:n,hat_y_manual,col="3")
 
-#y_pred=predict.lm(modelo_parte2,newdata=ptest)
-y_pred=predict(modelo_parte2,newdata=ptest)
+y_pred=predict.lm(modelo_parte2,newdata=ptest)
 aux=summary(modelo_parte2)
 aux[["adj.r.squared"]]
 aux[["r.squared"]]
 N=dim(ptest)[1]
-#1/N*sum((ptest[["protein"]]-predict.lm(modelo_parte2,newdata=ptest))^2)
-1/N*sum((ptest[["protein"]]-predict(modelo_parte2,newdata=ptest))^2)
+1/N*sum((ptest[["protein"]]-predict.lm(modelo_parte2,newdata=ptest))^2)
+
 #Para el cross validation utilizamos el control de la forma
 library(caret)
 ctrl <- trainControl(method = "cv", number = 5)
-modelcrossval <- train(protein~fat+carb+fiber+calories,data=ptrain, method = "lm", trControl = ctrl) #Entrenamos el modelo considerando el control
+modelcrossval <- train(protein+0.8*carb~fat+fiber+calories,data=ptrain, method = "lm", trControl = ctrl) #Entrenamos el modelo considerando el control
 print(modelcrossval)#Vemos el resumen del modelo con control k-fold CV
