@@ -6,59 +6,119 @@ set.seed(23)
 path = '~/OneDrive - Universidad Adolfo Ibanez/Codes/Universidad/Kernels/Repo/Tarea 2/sim.txt'
 data = read.delim(path, header = TRUE, sep = ",", dec = ".")
 
-# Creando datasets de prueba y entrenamiento
+data = data[sample(nrow(data)),]
 
-index <- sample(1:4, 200, replace=TRUE) 
-data['grupo'] <- index
+### Pregunta 1
 
-train <- data[which(data$grupo == 1 | data$grupo == 2 | data$grupo == 3),]
-test <- data[which(data$grupo == 4),]
+# Estableciendo 10-fold CV
 
-x1_train = unlist(train[1])
-x2_train = unlist(train[2])
-y_train = unlist(train[3])
+folds <- cut(seq(1, nrow(data)), breaks = 10, labels=FALSE)
 
-x1_test = unlist(test[1])
-x2_test = unlist(test[2])
-y_test = unlist(test[3])
+ecm_vec = c()
+rsq_vec = c()
 
-# Estandarizando 
-
-mux1 = mean(x1_train)
-sdx1 = sd(x1_train)
-mux2 = mean(x2_train)
-sdx2 = sd(x2_train)
-
-x1train_est = (x1_train - mux1)/sdx1
-x1test_est = (x1_test - mux1)/sdx1
-x2train_est = (x2_train - mux2)/sdx2
-x2test_est = (x2_test - mux2)/sdx2
-
-# Función de Kernel
-
-Kfun = function(xi,xj,l2=0.5)
-{
-  exp(-sum((xi-xj)^2)/l2)
-}
-
-# Matriz de Gram
-
-ntrain = 151
-K = matrix(0,nrow=ntrain,ncol=ntrain)
-
-for(i in 1:ntrain)
-{
-  for(j in 1:ntrain)
+for(i in 1:10){
+  
+  testIndexes <- which(folds==i,arr.ind=TRUE)
+  test <- data[testIndexes, ]
+  train <- data[-testIndexes, ]
+  
+  x_train = train[1:2]
+  y_train = unlist(train[3])
+  
+  x_test = test[1:2]
+  y_test = unlist(test[3])
+  
+  # Estandarizando 
+  
+  mux = apply(x_train,2,mean)
+  sdx = apply(x_train,2,sd)
+  
+  xtrain_est = x_train
+  xtrain_est[,1] = (x_train[,1] - mux[1])/sdx[1]
+  xtrain_est[,2] = (x_train[,2] - mux[2])/sdx[2]
+  
+  xtest_est = x_test
+  xtest_est[,1] = (x_test[,1] - mux[1])/sdx[1]
+  xtest_est[,2] = (x_test[,2] - mux[2])/sdx[2]
+  
+  # Función de Kernel
+  
+  Kfun = function(xi,xj,l2=0.25)
   {
-    K[i,j] = Kfun(x1train_est[i], x2train_est[j])
+    exp(-sum((xi-xj)^2)/l2)
   }
+  
+  # Matriz de Gram
+  
+  ntrain = dim(xtrain_est)[1]
+  K = matrix(0, nrow = ntrain, ncol = ntrain)
+  
+  for(i in 1:ntrain)
+  {
+    for(j in 1:ntrain)
+    {
+      K[i,j] = Kfun(xtrain_est[i,], xtrain_est[j,])
+    }
+  }
+  
+  # Calculando W hat e Y hat
+  
+  lambda = 1
+  w_hat = solve(t(K)%*%K+lambda*diag(ntrain))%*%t(K)%*%y_train
+  
+  y_hat = K%*%w_hat
+  
+  # Revisando valores mínimos y máximos para armar parrilla
+  
+  min(data[1]) # 0.06019702
+  max(data[1]) # 4.976222
+  
+  min(data[2]) # 0.01729765
+  max(data[2]) # 4.985938
+  
+  s = seq(0, 5, 0.05)
+  sgrid = as.matrix(expand.grid(s,s))
+  
+  sgrid_est = sgrid
+  sgrid_est[,1]=(sgrid_est[,1] - mux[1])/sdx[1]
+  sgrid_est[,2]=(sgrid_est[,2] - mux[2])/sdx[2]
+  
+  ## Armando predicciones con el dataset de entrenamiento
+  
+  #xtrain_est = unlist(xtrain_est)
+  npred = dim(sgrid_est)[1]
+  K_pred_train = matrix(0, nrow = npred, ncol = ntrain)
+  
+  
+  for(i in 1:ntrain)
+  {
+    K_pred_train[,i]=exp(-rowSums((sgrid_est - matrix(unlist(xtrain_est[i,]), nrow = npred, ncol = 2, byrow = TRUE))^2)/0.25)
+  }
+  
+  y_pred_train = K_pred_train%*%w_hat
+  
+  ## Armando predicciones con el dataset de testeo
+  
+  ntest = dim(xtest_est)[1]
+  K_pred_test=matrix(0, nrow = ntest, ncol = ntrain)
+  for(i in 1:ntrain)
+  {
+    K_pred_test[,i]=exp(-rowSums((xtest_est - matrix(unlist(xtrain_est[i,]), nrow = ntest, ncol = 2, byrow = TRUE))^2)/0.25)
+  }
+  
+  y_pred_test = K_pred_test%*%w_hat
+  
+  ## Error cuadrático medio y R cuadrado
+  
+  ecm = 1/ntest*sum((y_test - y_pred_test)^2)
+  ecm_vec = append(ecm_vec,ecm)
+  
+  rsq = cor(y_test, y_pred_test)^2
+  rsq_vec = append(rsq_vec, rsq)
 }
 
-# Calculando W hat e Y hat
+ecm_vec
+rsq_vec
 
-lambda = 1
-In=diag(ntrain)
-w_hat = solve(K + lambda*In)%*%y_train
-
-y_hat=K%*%w_hat
-
+## Pregunta 2
