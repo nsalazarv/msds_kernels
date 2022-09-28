@@ -250,7 +250,7 @@ ecm_vec2
 rsq_vec2
 
 #2.3
-boxplot(ecm_vec2, horizontal=TRUE)
-boxplot(rsq_vec2, horizontal=TRUE)
+boxplot(unlist(l_vec), main='L')
+boxplot(unlist(lam_vec), main='Lambda')
 #Tenemos que los valores de LS tienen mayor varianza en sus distribucion en contraste con los valores lambda que se mantienen en un rango mucho menor, teniendo diferencias considerables al caso previo
 
