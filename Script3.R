@@ -57,7 +57,7 @@ sdx = apply(x,2,sd)
 
 
 x_est = x
-x_est[,1] = (x_train[,1] - mux[1])/sdx[1]
+x_est[,1] = (x[,1] - mux[1])/sdx[1]
 
 # Obteniendo l y o
 
