@@ -41,8 +41,8 @@ o_grid = seq(0.1, 1, 0.1)
 llgrid = expand.grid(l_grid, o_grid)
 dim_grid = dim(llgrid)[1]
 
-ecm_save = rep(0, dim_grid)
-
+ecm_save1 = rep(0, dim_grid)
+ecm_save2 = rep(0, dim_grid)
 
 x = data[1]
 y = unlist(data[2])
@@ -92,5 +92,9 @@ for(z in 1:dim_grid){
   y_pred_test1 = K_pred_test1%*%w_hat1
   y_pred_test2 = K_pred_test2%*%w_hat2
   
-  ecm_save[z] = 1/ntest*sum((y_test - y_pred_test1)^2)
+  ecm_save1[z] = 1/ntest*sum((y_test - y_pred_test1)^2)
+  ecm_save2[z] = 1/ntest*sum((y_test - y_pred_test2)^2)
 }
+
+min(ecm_save1)
+min(ecm_save2)
