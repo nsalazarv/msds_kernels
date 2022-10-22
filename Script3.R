@@ -2,6 +2,7 @@
 rm(list = ls())
 set.seed(23)
 library("rgl")
+library('agrmt')
 
 path = "C:/Users/Dell/Desktop/datos.txt"
 data = read.delim(path, header = TRUE, sep = ",", dec = ".")
@@ -35,8 +36,8 @@ ecm_vec2 = c()
 rsq_vec2 = c()
 
 
-l_grid = seq(0.1, 1, 0.1)
-o_grid = seq(0.1, 1, 0.1)
+l_grid = seq(0.001, 3, 0.001)
+o_grid = seq(0.001, 3, 0.001)
 
 llgrid = expand.grid(l_grid, o_grid)
 dim_grid = dim(llgrid)[1]
@@ -94,7 +95,10 @@ for(z in 1:dim_grid){
   
   ecm_save1[z] = 1/ntest*sum((y_test - y_pred_test1)^2)
   ecm_save2[z] = 1/ntest*sum((y_test - y_pred_test2)^2)
+  
+  if(minnz(ecm_save1)<0.000009 & minnz(ecm_save2)<0.000009) break
 }
 
 min(ecm_save1)
 min(ecm_save2)
+ecm_save1
