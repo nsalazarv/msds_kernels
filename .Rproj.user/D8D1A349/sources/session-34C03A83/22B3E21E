@@ -1,0 +1,27 @@
+{
+    "id": "22B3E21E",
+    "path": "C:/Users/nicov/Desktop/Universidad/Trabajos Universidad Uai/Semestre X/MÉTODOS BASADOS EN KERNELS PARA APRENDIZAJE AUTOMÁTICO/msds_kernels/tarea_4_ej1y2.R",
+    "project_path": "tarea_4_ej1y2.R",
+    "type": "r_source",
+    "hash": "3269653969",
+    "contents": "",
+    "dirty": false,
+    "created": 1668012872578.0,
+    "source_on_save": false,
+    "relative_order": 2,
+    "properties": {
+        "tempName": "Untitled1",
+        "source_window_id": "",
+        "Source": "Source",
+        "cursorPosition": "132,0",
+        "scrollLine": "117"
+    },
+    "folds": "38|15|63|0|\n",
+    "lastKnownWriteTime": 1668173752,
+    "encoding": "UTF-8",
+    "collab_server": "",
+    "source_window": "",
+    "last_content_update": 1668173752750,
+    "read_only": false,
+    "read_only_alternatives": []
+}

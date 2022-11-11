@@ -1,0 +1,21 @@
+{
+    "debugBreakpointsState": {
+        "breakpoints": [
+            {
+                "id": 0,
+                "path": "C:/Users/nicov/Desktop/Universidad/Trabajos Universidad Uai/Semestre X/MÉTODOS BASADOS EN KERNELS PARA APRENDIZAJE AUTOMÁTICO/msds_kernels/tarea_4_ej1y2.R",
+                "line_number": 69,
+                "function_steps": "",
+                "function_name": "toplevel",
+                "state": 1,
+                "editor_state": 1,
+                "editor_line_number": 69,
+                "is_pending_debug_completion": false,
+                "needs_updated_steps": true,
+                "type": 1,
+                "is_package_breakpoint": false,
+                "package_name": ""
+            }
+        ]
+    }
+}

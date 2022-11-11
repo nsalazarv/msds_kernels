@@ -1,0 +1,272 @@
+###################################################################
+## Clase: Kernel regression                                      ##
+##                                                               ##
+## Temas: Kernel SVM parte 2                                     ##
+##~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ##
+## Curso : Métodos basados en kernel para aprendizaje automático ##
+## Profesor: Tamara Fernandez                                    ##
+## Fecha :                                                       ##
+###################################################################
+
+
+##Contenidos
+## 1) Implementación con un kernel arbitrario
+## 2) Muestreo estratificado
+## 3) Medidas de desempeño
+## 4) SVM variando el threshold
+
+#~~~~~~~~~~~~~~~~~~~~~#
+# Generacion de datos #
+#~~~~~~~~~~~~~~~~~~~~~#
+set.seed(129192)
+n1= 80 #numero de datos en el primer grupo
+n2= 120#numero de datos en el segundo grupo
+
+X1=runif(n1,0,2*pi)
+X2=runif(n2,0,2*pi)
+
+#Generamos datos para el grupo 1
+r1=2
+Y1=r1*sin(X1)+rnorm(n1,0,1/4)
+Z1=r1*cos(X1)+rnorm(n1,0,1/4)
+
+#Generamos datos para el grupo 2
+r2=3
+Y2=r2*sin(X2)+rnorm(n2,0,1/10)
+Z2=r2*cos(X2)+rnorm(n2,0,1/10)
+X=cbind(c(Y1,Y2),c(Z1,Z2))
+
+#En la variable Y guardamos la clase
+Y1p=2*(runif(n1)<0.9)-1
+Y2p = -2*(runif(n2)<0.9)+1
+Y=c(Y1p,Y2p)
+
+#Graficamos los datos generados
+index1=which(Y==1)
+plot(X[-index1,1],X[-index1,2],col='magenta',pch=19,xlab='X1',ylab='X2')
+points(X[index1,1],X[index1,2],col='blue',pch=15)
+
+
+##~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~#
+## 1) Implementación con un kernel arbitrario  #
+##~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~#
+
+library("kernlab")
+#Recordemos como se implementaba kernel svm utilizando el kernel Gaussiano (que viene por defecto en la libreria)
+Ksvm=ksvm(y=as.factor(Y),x=X,kernel='rbfdot',kpar=list(sigma=0.01),scaled=FALSE,C=1)
+plot(Ksvm, data = X)
+
+Ksvm=ksvm(y=as.factor(Y),x=X,kernel='rbfdot',kpar=list(sigma=1),scaled=FALSE,C=1) 
+plot(Ksvm, data = X)
+
+Ksvm=ksvm(y=as.factor(Y),x=X,kernel='polydot',kpar=list(degree=5,offset=0,scale=2),scaled=FALSE,C=1) 
+plot(Ksvm, data = X)
+
+##Implementación
+#Veremos como implementar kernel svm entregando como argumento la matriz de Gram
+#Orstein-Uhlenbeck:
+Kfun1=function(x,y,ls=2,sigma=1)
+{
+    sigma*exp(-sum(abs(x-y)/ls^2))
+}
+
+class(Kfun1)='kernel'
+Ksvm=ksvm(y=as.factor(Y),x=X,kernel=Kfun1,scaled=FALSE,C=1)
+plot(Ksvm)
+
+
+#Kernel periodico:
+Kfun2=function(x,y,ls=2,sigma=1,p=5)
+{
+    sigma*exp(-2*sin(pi*sum(abs(x-y))/p)^2/ls^2)+sigma*exp(-sum(abs(x-y)/ls^2))
+}
+
+
+class(Kfun2)='kernel'
+Ksvm=ksvm(y=as.factor(Y),x=X,kernel=Kfun2,scaled=FALSE,C=1)
+plot(Ksvm)
+
+##~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~#
+## 2) Muestreo stratificado:                   #
+##~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~#
+
+#~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~#
+# Generacion de un set de testeo y entrenamiento #
+#~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~#
+#Recordemos que nuestros datos consistian en los puntos X:
+X
+#Y el vector de clases Y:
+Y
+
+## Muestreo stratificado: 
+#-Vamos a considerar un set de testeto con aproximadamente el 10% de los datos. 
+#-Para asegurarnos de que ambas clases esten bien representadas, crearemos un set de entrenamiento y testeo que respeten las proporciones originales de cada clase
+
+#Clase 1: valor 1  
+n1/(n1+n2)  
+index1=which(Y==1)
+X[index1,] 
+
+
+#Clase 2: valor -1 
+n2/(n1+n2) 
+index_neg1=which(Y==-1)
+X[index_neg1,] 
+
+#Muestreo estratificado clase 1: vamos a incluir el 10% del primer grupo, es decir n1*0.1=8 datos
+id1=sample(index1,n1*0.1)
+
+#Muestreo estratificado clase 2: vamos a incluir el 10% del primer grupo, es decir n2*0.1=12 datos
+id2=sample(index_neg1,n2*0.1)
+
+id=c(id1,id2)
+
+#Definimos el set de testeo
+Xtest=X[id,]
+Ytest=Y[id]
+#Definimos el set de entrenamiento
+Xtrain=X[-id,]
+Ytrain=Y[-id]
+
+##~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~#
+## 3) Medidas de desempeño                     #
+##~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~#
+Ksvm=ksvm(y=as.factor(Ytrain),x=Xtrain,kernel='rbfdot',kpar=list(sigma=0.1),scaled=FALSE,C=1)
+plot(Ksvm, data = Xtrain)
+
+##Opcion 1: Podemos predecir usando la funcion predict
+p1=predict(Ksvm,Xtest)
+p1
+
+##Opcion 2: Podemos predecir manualmente
+Kfun=function(x,y,sigma)
+{
+exp(-sigma*sum((x-y)^2))
+}
+
+predict.manual=function(Xtest,Xtrain,Ksvm,sigma,threshold)
+{
+    ntest=dim(Xtest)[1]
+    ntrain=dim(Xtrain)[1]
+    Kpred=matrix(0,nrow=ntest,ncol=ntrain)
+    for(i in 1:ntest)
+    {
+        for(j in 1:ntrain)
+        {
+            Kpred[i,j]=Kfun(Xtest[i,],Xtrain[j,],sigma)
+    
+        }
+    }
+
+    #Calculo de los valores w_0 y alpha*y
+    indices=Ksvm@alphaindex[[1]]
+    coefs=Ksvm@coef[[1]]
+    w_0=-Ksvm@b
+
+    yalpha=rep(0,ntrain)
+    yalpha[indices]=coefs
+    out=as.vector(2*(Kpred%*%yalpha+w_0>threshold))-1
+    out
+}
+#Calculamos nuestras predicciones
+predict.manual(Xtest,Xtrain,Ksvm,0.1,0)
+#Y comparamos con los resultados obtenidos con la funcion predict
+p1
+
+##Medidas de desempeño
+Table=table(p1,Ytest)
+Table
+
+#Seteamos la clase 1 como nuestra clase TRUE:
+#~~~~~~~~~#
+#Accuracy #
+#~~~~~~~~~#
+Accuracy=(Table[1,1]+Table[2,2])/sum(Table)
+Accuracy
+
+#~~~~~~~~~~#
+#Precision #
+#~~~~~~~~~~#
+Precision=Table[2,2]/(Table[2,1]+Table[2,2])
+Precision
+
+#~~~~~~~~~#
+#Recall   #
+#~~~~~~~~~#
+Recall=Table[2,2]/(Table[1,2]+Table[2,2])
+Recall
+
+#~~~~~~~~~#
+#F1-score #
+#~~~~~~~~~#
+F1=2*(Recall*Precision)/(Recall+Precision)
+F1
+#~~~~~~~~~~~~~#
+#Specificity  #
+#~~~~~~~~~~~~~#
+Specificity=Table[1,1]/(Table[1,1]+Table[2,1])
+Specificity
+
+
+##~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~##
+##4) SVM variando el threshold     ##
+##~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~##
+threshold.grid=seq(-2,1,0.005)
+len=length(threshold.grid)
+
+Accuracy.vec=rep(0,len)
+Precision.vec=rep(0,len)
+Recall.vec=rep(0,len)
+F1.vec=rep(0,len)
+Specificity.vec=rep(0,len)
+
+for(i in 1:len)
+{
+    if(i%%5==0)print(paste('Iter:',i))
+    Ksvm=ksvm(y=as.factor(Ytrain),x=Xtrain,kernel='rbfdot',kpar=list(sigma=0.1),scaled=FALSE,C=1)
+    p1=predict.manual(Xtest,Xtrain,Ksvm,0.1,threshold.grid[i])
+    p1=as.factor(p1)
+    levels(p1)=c('1','-1')
+    #plot(Ksvm, data = Xtrain)
+    #points(Xtest[,1],Xtest[,2],col='green',pch=19)
+
+    Table=table(p1,Ytest)
+
+    #Seteamos la clase 1 como nuestra clase TRUE:
+    #Accuracy 
+    Accuracy.vec[i]=(Table[1,1]+Table[2,2])/sum(Table)
+
+    #Precision
+    if(Table[2,1]+Table[2,2]==0) Precision.vec[i]=0
+    else Precision.vec[i]=Table[2,2]/(Table[2,1]+Table[2,2])
+
+    #Recall
+    if(Table[1,2]+Table[2,2]==0)Recall.vec[i]=0
+    else Recall.vec[i]=Table[2,2]/(Table[1,2]+Table[2,2])
+
+    #F1
+    if(Recall.vec[i]+Precision.vec[i]==0)F1.vec[i]=0
+    else F1.vec[i]=2*(Recall.vec[i]*Precision.vec[i])/(Recall.vec[i]+Precision.vec[i])
+
+    #Specificity 
+    if(Table[1,1]+Table[2,1]==0)Specificity.vec[i]=0
+    else Specificity.vec[i]=Table[1,1]/(Table[1,1]+Table[2,1])
+}
+
+par(mfrow=c(4,1))
+plot(threshold.grid, Accuracy.vec,type='l')
+plot(threshold.grid, Precision.vec,type='l')
+plot(threshold.grid, Recall.vec,type='l')
+plot(threshold.grid, F1.vec,type='l')
+
+
+plot(threshold.grid, Accuracy.vec,type='l')
+lines(threshold.grid, Precision.vec,col='blue')
+
+plot(1-Specificity.vec, Recall.vec)
+#Podemos hacer lo mismo para elegir parametros
+
+
+
+
+
