@@ -1,0 +1,259 @@
+### Script pregunta 5 y 6
+rm(list=ls())
+pacman::p_load(tidyverse, openintro, ggplot2, kernlab, caret)
+set.seed(23)
+
+######### Pregunta 5 ######### 
+
+## Revisando data
+
+data(starbucks)
+attach(starbucks)
+summary(starbucks)
+
+x_b = starbucks[2:3]
+y_b = starbucks[7]
+
+y_b$type = as.numeric(y_b$type)
+range = 1:77
+
+for (i in range){
+  if (y_b$type[i] != 1) {
+    
+    y_b$type[i] = 0
+    
+  } 
+}
+
+index1 = which(y_b == 1)
+plot(unlist(x_b[,1]), unlist(x_b[,2]), xlab = 'Calories', ylab = 'Fat', main = 'Clasificación Bakery/otros')
+points(unlist(x_b[index1,1]), unlist(x_b[index1,2]), pch = 19, col = "blue")
+
+## Separación dataset de train y test
+
+sample = sample(c(TRUE, FALSE), nrow(starbucks), replace=TRUE, prob=c(0.7,0.3))
+train  = starbucks[sample, ]
+test = starbucks[!sample, ]
+
+train$type = as.numeric(train$type)
+rangeTrain = 1:46
+
+test$type = as.numeric(test$type)
+rangeTest = 1:31
+
+for (j in rangeTrain){
+  if (train$type[j] != 1) {
+    
+    train$type[j] = 0
+    
+  } 
+}
+
+for (k in rangeTest){
+  if (test$type[k] != 1) {
+    
+    test$type[k] = 0
+    
+  } 
+}
+
+x_train = train[2:3]
+y_train = unlist(train[7])
+
+x_test = test[2:3]
+y_test = unlist(test[7])
+
+## Estandarizando 
+
+mux = apply(x_train,2,mean)
+sdx = apply(x_train,2,sd)
+
+xtrain_est = x_train
+xtrain_est[,1] = (x_train[,1] - mux[1])/sdx[1]
+xtrain_est[,2] = (x_train[,2] - mux[2])/sdx[2]
+
+xtrain_est = as.matrix(xtrain_est)
+
+xtest_est = x_test
+xtest_est[,1] = (x_test[,1] - mux[1])/sdx[1]
+xtest_est[,2] = (x_test[,2] - mux[2])/sdx[2]
+
+xtest_est = as.matrix(xtest_est)
+
+## Estableciendo funciones para predicción manual
+
+Kfun = function(x, y, sigma)
+{
+  exp(-sigma*sum((x-y)^2))
+}
+
+predict = function(Xtest, Xtrain, Ksvm, sigma, threshold)
+{
+  ntest = dim(Xtest)[1]
+  ntrain = dim(Xtrain)[1]
+  
+  Kpred = matrix(0, nrow = ntest, ncol = ntrain)
+  
+  for(a in 1:ntest)
+  {
+    for(s in 1:ntrain)
+    {
+      Kpred[a,s]=Kfun(Xtest[a,],Xtrain[s,],sigma)
+      
+    }
+  }
+  
+  indices = Ksvm@alphaindex[[1]]
+  coefs = Ksvm@coef[[1]]
+  w_0 = -Ksvm@b
+  
+  yalpha = rep(0,ntrain)
+  yalpha[indices] = coefs
+  
+  clase = as.vector(2*(Kpred%*%yalpha+w_0 > threshold))-1
+  dists = as.vector(abs(Kpred%*%yalpha+w_0)) 
+  
+  out = list(clase = clase, dists = dists)
+  return(out)
+}
+
+## Estableciendo thresholds de prueba
+
+threshold = seq(-1,1,0.005)
+len = length(threshold)
+
+acc_vec = rep(0,len)
+prec_vec = rep(0,len)
+recall_vec = rep(0,len)
+f1_vec = rep(0,len)
+spec_vec = rep(0,len)
+
+for(l in 1:len)
+{
+  if(l%%5==0) {print(paste('Iter:',l))}
+
+  Ksvm = ksvm(y = as.factor(y_train), x = xtrain_est, kernel = 'rbfdot', kpar = list(sigma = 0.1), scaled = FALSE, C = 1)
+  pred = predict(xtest_est, xtrain_est, Ksvm, 0.1, threshold[l])
+  
+  Table = table(pred$clase, as.factor(y_test))
+
+  # Accuracy
+  acc_vec[l] = (Table[1,1] + Table[2,2])/sum(Table)
+
+  # Precision
+  if(Table[2,1] + Table[2,2] == 0)prec_vec[l] = 0
+  else prec_vec[l] = Table[2,2]/(Table[2,1] + Table[2,2])
+
+  # Recall
+  if(Table[1,2] + Table[2,2] == 0)recall_vec[l] = 0
+  else recall_vec[l] = Table[2,2]/(Table[1,2] + Table[2,2])
+
+  # F1
+  if(recall_vec[l] + prec_vec[l] == 0)f1_vec[l] = 0
+  else f1_vec[l] = 2*(recall_vec[l]*prec_vec[l])/(recall_vec[l] + prec_vec[l])
+
+  # Specificity
+  if(Table[1,1] + Table[2,1]==0)spec_vec[l]=0
+  else spec_vec[l] = Table[1,1]/(Table[1,1] + Table[2,1])
+}
+
+plot(threshold, acc_vec, type='l')
+plot(threshold, prec_vec, type='l')
+plot(threshold, recall_vec, type='l')
+plot(threshold, f1_vec, type='l')
+
+
+plot(threshold, acc_vec, type = 'l')
+lines(threshold, prec_vec, col = 'blue')
+
+plot(1-spec_vec, recall_vec)
+
+## Podemos ver que el mejor modelo se encuentra en el un threshold aprox. = -0.7
+
+plot(Ksvm, data = xtrain_est)
+
+pred2 = predict(xtest_est, xtrain_est, Ksvm, 0.1, -0.7)
+pred2
+
+## Agregamos las predicciones, "distancias" absolutas calculadas, y una variable Flag.
+
+data = test[2:3]
+data$pred = pred2$clase
+data$dist = pred2$dists
+data$flag = FALSE
+
+dists_sort = lapply(list(pred2$dists),sort)
+dists_sort = unlist(dists_sort)
+
+## Como tenemos 31 observaciones, el el 15% de las observaciones son aproximadamente 5.
+
+max = dists_sort[5]
+
+for(f in rangeTest){
+  if(data$dist[f] <= max){
+    
+    data$flag[f] = TRUE
+    
+  }
+  
+}
+
+index2 = which(data$flag == TRUE)
+plot(unlist(data[,1]), unlist(data[,2]), xlab = 'Calories', ylab = 'Fat', main = 'Productos con inspección manual')
+points(unlist(data[index2,1]), unlist(data[index2,2]), pch = 19, col = "red")
+
+
+######### Pregunta 6 ######### 
+
+data2 = starbucks
+data2$type = as.numeric(data2$type)
+
+for (q in range){
+  if (data2$type[q] == 6) {
+    
+    data2$type[q] = 2
+    
+  } 
+}
+
+for (w in range){
+  if (data2$type[w] == 4 || data2$type[w] == 5 || data2$type[w] == 7) {
+    
+    data2$type[w] = 3
+    
+  } 
+}
+
+train  = data2[sample, ]
+test = data2[!sample, ]
+
+x_train = train[2:6]
+y_train = unlist(train[7])
+
+x_test = test[2:6]
+y_test = unlist(test[7])
+
+## Estandarizando 
+
+mux = apply(x_train,2,mean)
+sdx = apply(x_train,2,sd)
+
+xtrain_est = x_train
+xtrain_est[,1] = (x_train[,1] - mux[1])/sdx[1]
+xtrain_est[,2] = (x_train[,2] - mux[2])/sdx[2]
+xtrain_est[,3] = (x_train[,3] - mux[3])/sdx[3]
+xtrain_est[,4] = (x_train[,4] - mux[4])/sdx[4]
+xtrain_est[,5] = (x_train[,5] - mux[5])/sdx[5]
+
+xtrain_est = as.matrix(xtrain_est)
+
+xtest_est = x_test
+xtest_est[,1] = (x_test[,1] - mux[1])/sdx[1]
+xtest_est[,2] = (x_test[,2] - mux[2])/sdx[2]
+xtest_est[,3] = (x_test[,3] - mux[3])/sdx[3]
+xtest_est[,4] = (x_test[,4] - mux[4])/sdx[4]
+xtest_est[,5] = (x_test[,5] - mux[5])/sdx[5]
+
+xtest_est = as.matrix(xtest_est)
+
+

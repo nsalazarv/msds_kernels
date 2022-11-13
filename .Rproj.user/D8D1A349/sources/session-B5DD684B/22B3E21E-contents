@@ -12,6 +12,7 @@ data$type<- ifelse(data$type == 'bakery', 1, 0)
 # data$type<-NULL
 data$item<-NULL
 # X=as.matrix(data)
+
 # Prepare the data frame containing the cross validation partitions
 folds <- vfold_cv(data, v = 5, strata = "type" )
 folds
@@ -42,12 +43,30 @@ for (j in 1:5){
   for (i in 1:5){
     aux<-c()
     #Entrenamiento
-    X_train=as.matrix(cv_data[[3]][[i]][j])  
+    X_train=cv_data[[3]][[i]][j]
     Y_train=as.matrix(cv_data[[3]][[i]][6])
     
     #Testeo
-    X_test=as.matrix(cv_data[[4]][[i]][j])
+    X_test=cv_data[[4]][[i]][j]
     Y_test=as.matrix(cv_data[[4]][[i]][6])
+    
+    ## Estandarizando 
+    
+    mux = apply(X_train,2,mean)
+    sdx = apply(X_train,2,sd)
+    
+    xtrain_est = X_train
+    xtrain_est[,1] = (X_train[,1] - mux[1])/sdx[1]
+    xtrain_est = as.matrix(xtrain_est)
+    
+    xtest_est = X_test
+    xtest_est[,1] = (X_test[,1] - mux[1])/sdx[1]
+
+    
+    xtest_est = as.matrix(xtest_est)
+    X_train=xtrain_est
+    X_test=xtest_est
+    
     
     Ksvm=ksvm(y=as.factor(Y_train),x=X_train,
               kernel='vanilladot',scaled=FALSE,C=1)
@@ -75,7 +94,8 @@ medias<-resultados %>%  group_by(Covariable) %>% summarise(Accuracy = mean(Accur
                                                    Precision = mean(Precision), 
                                                    Recall = mean(Recall))
 medias
-#accuracy: proteina y carb; precision carb y recall protein
+
+#accuracy: proteina; precision carb y recall protein
 
 #Pregunta 2:
 nombres<-colnames(cv_data[[3]][[1]])
@@ -87,6 +107,7 @@ for (z in 1:5){
   cv_data_2[[4]][[z]][6]<-NULL
   
 }
+
 resultados_2<-c()
 for (j in 1:5){
   nombres<-colnames(cv_data_2[[3]][[1]])
@@ -96,13 +117,36 @@ for (j in 1:5){
     #Entrenamiento
     Y_train=as.matrix(cv_data[[3]][[i]][6])
     cv_data_2[[3]][[i]][6]<-NULL
-    X_train=as.matrix(cv_data_2[[3]][[i]][-j])  
+    X_train=cv_data_2[[3]][[i]][-j]
     
     
     #Testeo
     Y_test=as.matrix(cv_data[[4]][[i]][6])
     cv_data_2[[4]][[i]][6]<-NULL
-    X_test=as.matrix(cv_data_2[[4]][[i]][-j])
+    X_test=cv_data_2[[4]][[i]][-j]
+    
+    ## Estandarizando 
+    
+    mux = apply(X_train,2,mean)
+    sdx = apply(X_train,2,sd)
+    
+    xtrain_est = X_train
+    xtrain_est[,1] = (X_train[,1] - mux[1])/sdx[1]
+    xtrain_est[,2] = (X_train[,2] - mux[2])/sdx[2]
+    xtrain_est[,3] = (X_train[,3] - mux[3])/sdx[3]
+    xtrain_est[,4] = (X_train[,4] - mux[4])/sdx[4]
+    
+    xtrain_est = as.matrix(xtrain_est)
+    
+    xtest_est = X_test
+    xtest_est[,1] = (X_test[,1] - mux[1])/sdx[1]
+    xtest_est[,2] = (X_test[,2] - mux[2])/sdx[2]
+    xtest_est[,3] = (X_test[,3] - mux[3])/sdx[3]
+    xtest_est[,4] = (X_test[,4] - mux[4])/sdx[4]
+    
+    xtest_est = as.matrix(xtest_est)
+    X_train=xtrain_est
+    X_test=xtest_est
     
     
     Ksvm=ksvm(y=as.factor(Y_train),x=X_train,
@@ -111,22 +155,16 @@ for (j in 1:5){
     pred<-predict(Ksvm,X_test)
     Table=table(pred,Y_test)
     Accuracy=(Table[1,1]+Table[2,2])/sum(Table)
-    Precision=Table[2,2]/(Table[2,1]+Table[2,2])
-    Recall=Table[2,2]/(Table[1,2]+Table[2,2])
-    aux<-cbind(nombres[j],i,Accuracy,Precision,Recall)
+    aux<-cbind(nombres[j],i,Accuracy)
     aux_2<-rbind(aux_2,aux)
   }
   resultados_2<-rbind(resultados_2,aux_2)
 }
 
 resultados_2<-data.frame(resultados_2)
-colnames(resultados_2)<-c("Covariable_fuera", "Kfold", "Accuracy", "Precision", "Recall")
-resultados_2<-resultados_2 %>% mutate(Accuracy=as.numeric(Accuracy), 
-                                  Precision=as.numeric(Precision),
-                                  Recall=as.numeric(Recall))
+colnames(resultados_2)<-c("Covariable_fuera", "Kfold", "Accuracy")
+resultados_2<-resultados_2 %>% mutate(Accuracy=as.numeric(Accuracy))
 str(resultados_2)
-medias_2<-resultados_2 %>%  group_by(Covariable_fuera) %>% summarise(Accuracy = mean(Accuracy), 
-                                                           Precision = mean(Precision), 
-                                                           Recall = mean(Recall))
-medias_2
+medias_2<-resultados_2 %>%  group_by(Covariable_fuera) %>% summarise(Accuracy = mean(Accuracy))
 
+medias_2
