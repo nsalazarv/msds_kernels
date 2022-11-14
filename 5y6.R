@@ -252,4 +252,8 @@ train_df = data.frame(pred_1, pred_2, pred_3, type = as.factor(y), check.names =
 modelStack = train(type ~ ., data = train_df, method = "rf")
 combPred = predict(modelStack, train_df)
 
-table(combPred, y)
+Table2 = table(combPred, y)
+
+acc = (Table2[1,1] + Table2[2,2] + Table2[3,3])/sum(Table)
+acc
+              
